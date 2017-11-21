@@ -1,13 +1,11 @@
 # Arcus
 NAVER에서 오픈소스로 발표한 [Arcus]를 [Docker]로 구성 할수 있도록 Dockerfile을 만들어 보았습니다.
 
-Step 1,2,3,4 이후에는 이 [Link]를 통해 "4. Arcus 설정"부터 따라 하시면 됩니다.
-
 
 ### Step 1. Git clone
 
 ```
-root@ruo91:~# git clone git://github.com/ruo91/docker-arcus /opt/docker-arcus
+root@studio:~# git clone https://hconnect.hanyang.ac.kr/SW_studio2_2017/team7.git /opt/team7
 ```
 
 
@@ -16,12 +14,12 @@ HostOS에서 Arcus Admin과 Memcached로 사용될 Container의 이미지를 만
 
 - Arcus Admin
 ```
-root@ruo91:~# docker build --rm -t arcus-admin /opt/docker-arcus/arcus
+root@studio:~# docker build --rm -t arcus-admin /opt/team7/arcus
 ```
 
 - Memcached
 ```
-root@ruo91:~# docker build --rm -t arcus-memcached /opt/docker-arcus/arcus-memcached
+root@studio:~# docker build --rm -t arcus-memcached /opt/team7/arcus-memcached
 ```
 
 
@@ -30,14 +28,14 @@ Arcus Admin으로 사용될 Container를 하나 생성하고, Memcached로 사�
 
 - Arcus Admin
 ```
-root@ruo91:~# docker run -d --name="arcus-admin" -h "arcus" arcus-admin
+root@studio:~# docker run -d --name="arcus-admin" -h "arcus" arcus-admin
 ```
 
 - Memcached
 ```
-root@ruo91:~# docker run -d --name="arcus-memcached-1" -h "memcached-1" arcus-memcached
-root@ruo91:~# docker run -d --name="arcus-memcached-2" -h "memcached-2" arcus-memcached
-root@ruo91:~# docker run -d --name="arcus-memcached-3" -h "memcached-3" arcus-memcached
+root@studio:~# docker run -d --name="arcus-memcached-1" -h "memcached-1" arcus-memcached
+root@studio:~# docker run -d --name="arcus-memcached-2" -h "memcached-2" arcus-memcached
+root@studio:~# docker run -d --name="arcus-memcached-3" -h "memcached-3" arcus-memcached
 ```
 
 
@@ -45,15 +43,19 @@ root@ruo91:~# docker run -d --name="arcus-memcached-3" -h "memcached-3" arcus-me
 arcus-admin, arcus-memcached의 SSH 비밀번호는 "arcus"와 "memcached" 입니다.
 
 ```
-root@ruo91:~# docker inspect -f '{{ .NetworkSettings.IPAddress }}' \
+root@studio:~# docker inspect -f '{{ .NetworkSettings.IPAddress }}' \
 arcus-admin arcus-memcached-1 arcus-memcached-2 arcus-memcached-3
 ```
 
+각각의 동작 수행시 [yes]를 입력하고 
+
+'arcus-admin'의 비밀번호는 'arcus'이고, 'arcus-memcached'의 비밀번호는 'memcached'입니다.
+
 ```
-root@ruo91:~# ssh `docker inspect -f '{{ .NetworkSettings.IPAddress }}' arcus-admin`
-root@ruo91:~# ssh `docker inspect -f '{{ .NetworkSettings.IPAddress }}' arcus-memcached-1`
-root@ruo91:~# ssh `docker inspect -f '{{ .NetworkSettings.IPAddress }}' arcus-memcached-2`
-root@ruo91:~# ssh `docker inspect -f '{{ .NetworkSettings.IPAddress }}' arcus-memcached-3`
+root@studio:~# ssh `docker inspect -f '{{ .NetworkSettings.IPAddress }}' arcus-admin`
+root@studio:~# ssh `docker inspect -f '{{ .NetworkSettings.IPAddress }}' arcus-memcached-1`
+root@studio:~# ssh `docker inspect -f '{{ .NetworkSettings.IPAddress }}' arcus-memcached-2`
+root@studio:~# ssh `docker inspect -f '{{ .NetworkSettings.IPAddress }}' arcus-memcached-3`
 ```
 
 
@@ -76,6 +78,8 @@ root@arcus:/opt/arcus/scripts# sed -i 's/127.0.0.1:2181/172.17.0.3:2181,172.17.0
 ### Step 6. SSH Public Key 배포
 Memcached로 사용될 서버에 배포 합니다.
 
+각각의 동작 수행시 [yes]를 입력하고 비밀 번호는 'memcached'입니다.
+
 ```
 root@arcus:/opt/arcus/scripts# scp /root/.ssh/authorized_keys root@172.17.0.3:/root/.ssh
 root@arcus:/opt/arcus/scripts# scp /root/.ssh/authorized_keys root@172.17.0.4:/root/.ssh
@@ -90,9 +94,9 @@ conf 디렉토리에 json 형식으로 파일을 생성 하고, 내용에는 Mem
 하나의 서버에 두개의 Memcached를 실행 하도록 설정 하겠습니다.
 
 ```
-root@arcus:/opt/arcus/scripts# nano conf/ruo91.json
+root@arcus:/opt/arcus/scripts# vi conf/studio.json
 {
-    "serviceCode": "ruo91-cloud"
+    "serviceCode": "studio-cloud"
   , "servers": [
         { "hostname": "memcached-1", "ip": "172.17.0.3",
           "config": {
@@ -137,12 +141,13 @@ root@arcus:/opt/arcus/scripts# nano conf/ruo91.json
 ### Step 8. Arcus 배포
 이제 memcached-1, memcached-2, memcached-3 서버에 arcus를 배포 합니다.
 
-배포 과정에서 주의 할점은, arcus.tar.gz 파일을 netcat 유틸리티로 파일을 전송하기 때문에, netcat 유틸리티가 미리 설치가 되어 있어야 한다는 점 입니다. (없는 경우는 극히 드물지만..)
+사전에 netcat 유틸리티가 미리 설치가 되어 있어야 합니다.
 
 ```
-root@arcus:/opt/arcus/scripts# ./arcus.sh deploy conf/ruo91.json
+root@arcus:/opt/arcus/scripts# ./arcus.sh deploy conf/studio.json
 Server Roles
-        {'zookeeper': ['172.17.0.3', '172.17.0.4', '172.17.0.5'], 'memcached': [u'172.17.0.3', u'172.17.0.3', u'172.17.0.4', u'172.17.0.4', u'172.17.0.5', u'172.17.0.5']}
+        {'zookeeper': ['172.17.0.3', '172.17.0.4', '172.17.0.5'], 'memcached': [u'172.17.0.3', u'172.17.0.3'
+, u'172.17.0.4', u'172.17.0.4', u'172.17.0.5', u'172.17.0.5']}
 
 [172.17.0.3] Executing task 'deploy'
 [172.17.0.4] Executing task 'deploy'
@@ -264,65 +269,77 @@ Server Roles
 [172.17.0.5] out:
 
 ====== Func: zk_wait
-[172.17.0.3] run: GOT=$(echo stat | nc localhost 2181 | grep Mode:); if [ -z "$GOT" ]; then echo "Mode: stale"; else echo $GOT; fi
+[172.17.0.3] run: GOT=$(echo stat | nc localhost 2181 | grep Mode:); if [ -z "$GOT" ]; then echo "Mode: stale"; 
+else echo $GOT; fi
 [172.17.0.3] out: stdin: is not a tty
 [172.17.0.3] out: Mode: follower
 [172.17.0.3] out:
 
-[172.17.0.4] run: GOT=$(echo stat | nc localhost 2181 | grep Mode:); if [ -z "$GOT" ]; then echo "Mode: stale"; else echo $GOT; fi
+[172.17.0.4] run: GOT=$(echo stat | nc localhost 2181 | grep Mode:); if [ -z "$GOT" ]; then echo "Mode: stale"; 
+else echo $GOT; fi
 [172.17.0.4] out: stdin: is not a tty
 [172.17.0.4] out: Mode: stale
 [172.17.0.4] out:
 
-[172.17.0.5] run: GOT=$(echo stat | nc localhost 2181 | grep Mode:); if [ -z "$GOT" ]; then echo "Mode: stale"; else echo $GOT; fi
+[172.17.0.5] run: GOT=$(echo stat | nc localhost 2181 | grep Mode:); if [ -z "$GOT" ]; then echo "Mode: stale";
+ else echo $GOT; fi
 [172.17.0.5] out: stdin: is not a tty
 [172.17.0.5] out: Mode: follower
 [172.17.0.5] out:
 
 zookeeper cluster not complete yet; sleeping 3 seconds
-[172.17.0.3] run: GOT=$(echo stat | nc localhost 2181 | grep Mode:); if [ -z "$GOT" ]; then echo "Mode: stale"; else echo $GOT; fi
+[172.17.0.3] run: GOT=$(echo stat | nc localhost 2181 | grep Mode:); if [ -z "$GOT" ]; then echo "Mode: stale";
+ else echo $GOT; fi
 [172.17.0.3] out: stdin: is not a tty
 [172.17.0.3] out: Mode: follower
 [172.17.0.3] out:
 
-[172.17.0.4] run: GOT=$(echo stat | nc localhost 2181 | grep Mode:); if [ -z "$GOT" ]; then echo "Mode: stale"; else echo $GOT; fi
+[172.17.0.4] run: GOT=$(echo stat | nc localhost 2181 | grep Mode:); if [ -z "$GOT" ]; then echo "Mode: stale"; 
+else echo $GOT; fi
 [172.17.0.4] out: stdin: is not a tty
 [172.17.0.4] out: Mode: stale
 [172.17.0.4] out:
 
-[172.17.0.5] run: GOT=$(echo stat | nc localhost 2181 | grep Mode:); if [ -z "$GOT" ]; then echo "Mode: stale"; else echo $GOT; fi
+[172.17.0.5] run: GOT=$(echo stat | nc localhost 2181 | grep Mode:); if [ -z "$GOT" ]; then echo "Mode: stale";
+ else echo $GOT; fi
 [172.17.0.5] out: stdin: is not a tty
 [172.17.0.5] out: Mode: follower
 [172.17.0.5] out:
 
 zookeeper cluster not complete yet; sleeping 3 seconds
-[172.17.0.3] run: GOT=$(echo stat | nc localhost 2181 | grep Mode:); if [ -z "$GOT" ]; then echo "Mode: stale"; else echo $GOT; fi
+[172.17.0.3] run: GOT=$(echo stat | nc localhost 2181 | grep Mode:); if [ -z "$GOT" ]; then echo "Mode: stale";
+ else echo $GOT; fi
 [172.17.0.3] out: stdin: is not a tty
 [172.17.0.3] out: Mode: follower
 [172.17.0.3] out:
 
-[172.17.0.4] run: GOT=$(echo stat | nc localhost 2181 | grep Mode:); if [ -z "$GOT" ]; then echo "Mode: stale"; else echo $GOT; fi
+[172.17.0.4] run: GOT=$(echo stat | nc localhost 2181 | grep Mode:); if [ -z "$GOT" ]; then echo "Mode: stale";
+ else echo $GOT; fi
 [172.17.0.4] out: stdin: is not a tty
 [172.17.0.4] out: Mode: stale
 [172.17.0.4] out:
 
-[172.17.0.5] run: GOT=$(echo stat | nc localhost 2181 | grep Mode:); if [ -z "$GOT" ]; then echo "Mode: stale"; else echo $GOT; fi
+[172.17.0.5] run: GOT=$(echo stat | nc localhost 2181 | grep Mode:); if [ -z "$GOT" ]; then echo "Mode: stale";
+ else echo $GOT; fi
 [172.17.0.5] out: stdin: is not a tty
 [172.17.0.5] out: Mode: follower
 [172.17.0.5] out:
 
 zookeeper cluster not complete yet; sleeping 3 seconds
-[172.17.0.3] run: GOT=$(echo stat | nc localhost 2181 | grep Mode:); if [ -z "$GOT" ]; then echo "Mode: stale"; else echo $GOT; fi
+[172.17.0.3] run: GOT=$(echo stat | nc localhost 2181 | grep Mode:); if [ -z "$GOT" ]; then echo "Mode: stale";
+ else echo $GOT; fi
 [172.17.0.3] out: stdin: is not a tty
 [172.17.0.3] out: Mode: follower
 [172.17.0.3] out:
 
-[172.17.0.4] run: GOT=$(echo stat | nc localhost 2181 | grep Mode:); if [ -z "$GOT" ]; then echo "Mode: stale"; else echo $GOT; fi
+[172.17.0.4] run: GOT=$(echo stat | nc localhost 2181 | grep Mode:); if [ -z "$GOT" ]; then echo "Mode: stale";
+ else echo $GOT; fi
 [172.17.0.4] out: stdin: is not a tty
 [172.17.0.4] out: Mode: leader
 [172.17.0.4] out:
 
-[172.17.0.5] run: GOT=$(echo stat | nc localhost 2181 | grep Mode:); if [ -z "$GOT" ]; then echo "Mode: stale"; else echo $GOT; fi
+[172.17.0.5] run: GOT=$(echo stat | nc localhost 2181 | grep Mode:); if [ -z "$GOT" ]; then echo "Mode: stale";
+ else echo $GOT; fi
 [172.17.0.5] out: stdin: is not a tty
 [172.17.0.5] out: Mode: follower
 [172.17.0.5] out:
@@ -465,12 +482,19 @@ Disconnecting from 172.17.0.5... done.
 Memcached 서버를 등록 합니다.
 
 ```
-root@arcus:/opt/arcus/scripts# ./arcus.sh memcached register conf/ruo91.json
+root@arcus:/opt/arcus/scripts# ./arcus.sh memcached register conf/studio.json
 Server Roles
-        {'zookeeper': ['172.17.0.3', '172.17.0.4', '172.17.0.5'], 'memcached': [u'172.17.0.3', u'172.17.0.3', u'172.17.0.4', u'172.17.0.4', u'172.17.0.5', u'172.17.0.5']}
+        {'zookeeper': ['172.17.0.3', '172.17.0.4', '172.17.0.5'], 'memcached': [u'172.17.0.3', u'172.17.0.3', 
+u'172.17.0.4', u'172.17.0.4', u'172.17.0.5', u'172.17.0.5']}
 
 No handlers could be found for logger "kazoo.client"
-[u'/arcus/cache_list/ruo91-cloud', u'/arcus/client_list/ruo91-cloud', u'/arcus/cache_server_mapping/172.17.0.3:11211', u'/arcus/cache_server_mapping/172.17.0.3:11211/ruo91-cloud', u'/arcus/cache_server_mapping/172.17.0.3:11212', u'/arcus/cache_server_mapping/172.17.0.3:11212/ruo91-cloud', u'/arcus/cache_server_mapping/172.17.0.4:11211', u'/arcus/cache_server_mapping/172.17.0.4:11211/ruo91-cloud', u'/arcus/cache_server_mapping/172.17.0.4:11212', u'/arcus/cache_server_mapping/172.17.0.4:11212/ruo91-cloud', u'/arcus/cache_server_mapping/172.17.0.5:11211', u'/arcus/cache_server_mapping/172.17.0.5:11211/ruo91-cloud', u'/arcus/cache_server_mapping/172.17.0.5:11212', u'/arcus/cache_server_mapping/172.17.0.5:11212/ruo91-cloud']
+[u'/arcus/cache_list/studio-cloud', u'/arcus/client_list/studio-cloud', u'/arcus/cache_server_mapping/172.17.0.3:11211', 
+u'/arcus/cache_server_mapping/172.17.0.3:11211/studio-cloud', u'/arcus/cache_server_mapping/172.17.0.3:11212',
+ u'/arcus/cache_server_mapping/172.17.0.3:11212/studio-cloud', u'/arcus/cache_server_mapping/172.17.0.4:11211',
+ u'/arcus/cache_server_mapping/172.17.0.4:11211/studio-cloud', u'/arcus/cache_server_mapping/172.17.0.4:11212', 
+u'/arcus/cache_server_mapping/172.17.0.4:11212/studio-cloud', u'/arcus/cache_server_mapping/172.17.0.5:11211', 
+u'/arcus/cache_server_mapping/172.17.0.5:11211/studio-cloud', u'/arcus/cache_server_mapping/172.17.0.5:11212', 
+u'/arcus/cache_server_mapping/172.17.0.5:11212/studio-cloud']
 
 Done.
 ```
@@ -480,32 +504,44 @@ Done.
 Dockerfile에서 설정한 memcached 사용자로 Memcached가 실행이 됩니다.
 
 ```
-root@arcus:/opt/arcus/scripts# ./arcus.sh memcached start ruo91-cloud
+root@arcus:/opt/arcus/scripts# ./arcus.sh memcached start studio-cloud
 Server Roles
         {'zookeeper': ['172.17.0.3', '172.17.0.4', '172.17.0.5'], 'memcached': []}
 
 [172.17.0.3] Executing task 'mc_start_server'
-[172.17.0.3] run: /opt/arcus/bin/memcached -u memcached -E /opt/arcus/lib/default_engine.so -X /opt/arcus/lib/syslog_logger.so -X /opt/arcus/lib/ascii_scrub.so -d -v -r -R5 -U 0 -D: -b 8192 -m100 -p 11211 -c 1000 -t 6 -z 172.17.0.3:2181,172.17.0.4:2181,172.17.0.5:2181
+[172.17.0.3] run: /opt/arcus/bin/memcached -u memcached -E /opt/arcus/lib/default_engine.so -X /opt/arcus/lib/syslog_logger.so
+ -X /opt/arcus/lib/ascii_scrub.so -d -v -r -R5 -U 0 -D: -b 8192 -m100 -p 11211 -c 1000 -t 6 -z 172.17.0.3:2181,172.17.0.4:2181,
+172.17.0.5:2181
 [172.17.0.3] out: stdin: is not a tty
 [172.17.0.3] out:
 [172.17.0.3] Executing task 'mc_start_server'
-[172.17.0.3] run: /opt/arcus/bin/memcached -u memcached -E /opt/arcus/lib/default_engine.so -X /opt/arcus/lib/syslog_logger.so -X /opt/arcus/lib/ascii_scrub.so -d -v -r -R5 -U 0 -D: -b 8192 -m100 -p 11212 -c 1000 -t 6 -z 172.17.0.3:2181,172.17.0.4:2181,172.17.0.5:2181
+[172.17.0.3] run: /opt/arcus/bin/memcached -u memcached -E /opt/arcus/lib/default_engine.so -X /opt/arcus/lib/syslog_logger.so 
+-X /opt/arcus/lib/ascii_scrub.so -d -v -r -R5 -U 0 -D: -b 8192 -m100 -p 11212 -c 1000 -t 6 -z 172.17.0.3:2181,172.17.0.4:2181,
+172.17.0.5:2181
 [172.17.0.3] out: stdin: is not a tty
 [172.17.0.3] out:
 [172.17.0.4] Executing task 'mc_start_server'
-[172.17.0.4] run: /opt/arcus/bin/memcached -u memcached -E /opt/arcus/lib/default_engine.so -X /opt/arcus/lib/syslog_logger.so -X /opt/arcus/lib/ascii_scrub.so -d -v -r -R5 -U 0 -D: -b 8192 -m100 -p 11211 -c 1000 -t 6 -z 172.17.0.3:2181,172.17.0.4:2181,172.17.0.5:2181
+[172.17.0.4] run: /opt/arcus/bin/memcached -u memcached -E /opt/arcus/lib/default_engine.so -X /opt/arcus/lib/syslog_logger.so 
+-X /opt/arcus/lib/ascii_scrub.so -d -v -r -R5 -U 0 -D: -b 8192 -m100 -p 11211 -c 1000 -t 6 -z 172.17.0.3:2181,172.17.0.4:2181,
+172.17.0.5:2181
 [172.17.0.4] out: stdin: is not a tty
 [172.17.0.4] out:
 [172.17.0.4] Executing task 'mc_start_server'
-[172.17.0.4] run: /opt/arcus/bin/memcached -u memcached -E /opt/arcus/lib/default_engine.so -X /opt/arcus/lib/syslog_logger.so -X /opt/arcus/lib/ascii_scrub.so -d -v -r -R5 -U 0 -D: -b 8192 -m100 -p 11212 -c 1000 -t 6 -z 172.17.0.3:2181,172.17.0.4:2181,172.17.0.5:2181
+[172.17.0.4] run: /opt/arcus/bin/memcached -u memcached -E /opt/arcus/lib/default_engine.so -X /opt/arcus/lib/syslog_logger.so 
+-X /opt/arcus/lib/ascii_scrub.so -d -v -r -R5 -U 0 -D: -b 8192 -m100 -p 11212 -c 1000 -t 6 -z 172.17.0.3:2181,172.17.0.4:2181,
+172.17.0.5:2181
 [172.17.0.4] out: stdin: is not a tty
 [172.17.0.4] out:
 [172.17.0.5] Executing task 'mc_start_server'
-[172.17.0.5] run: /opt/arcus/bin/memcached -u memcached -E /opt/arcus/lib/default_engine.so -X /opt/arcus/lib/syslog_logger.so -X /opt/arcus/lib/ascii_scrub.so -d -v -r -R5 -U 0 -D: -b 8192 -m100 -p 11211 -c 1000 -t 6 -z 172.17.0.3:2181,172.17.0.4:2181,172.17.0.5:2181
+[172.17.0.5] run: /opt/arcus/bin/memcached -u memcached -E /opt/arcus/lib/default_engine.so -X /opt/arcus/lib/syslog_logger.so 
+-X /opt/arcus/lib/ascii_scrub.so -d -v -r -R5 -U 0 -D: -b 8192 -m100 -p 11211 -c 1000 -t 6 -z 172.17.0.3:2181,172.17.0.4:2181,
+172.17.0.5:2181
 [172.17.0.5] out: stdin: is not a tty
 [172.17.0.5] out:
 [172.17.0.5] Executing task 'mc_start_server'
-[172.17.0.5] run: /opt/arcus/bin/memcached -u memcached -E /opt/arcus/lib/default_engine.so -X /opt/arcus/lib/syslog_logger.so -X /opt/arcus/lib/ascii_scrub.so -d -v -r -R5 -U 0 -D: -b 8192 -m100 -p 11212 -c 1000 -t 6 -z 172.17.0.3:2181,172.17.0.4:2181,172.17.0.5:2181
+[172.17.0.5] run: /opt/arcus/bin/memcached -u memcached -E /opt/arcus/lib/default_engine.so -X /opt/arcus/lib/syslog_logger.so 
+-X /opt/arcus/lib/ascii_scrub.so -d -v -r -R5 -U 0 -D: -b 8192 -m100 -p 11212 -c 1000 -t 6 -z 172.17.0.3:2181,172.17.0.4:2181,
+172.17.0.5:2181
 [172.17.0.5] out: stdin: is not a tty
 [172.17.0.5] out:
 
@@ -527,20 +563,20 @@ Server Roles
 -----------------------------------------------------------------------------------
 serviceCode  status  total  online  offline  created                     modified
 -----------------------------------------------------------------------------------
-ruo91-cloud  OK          6       6        0  2014-05-22 07:27:21.121711  None
+studio-cloud  OK          6       6        0  2014-05-22 07:27:21.121711  None
 
 Done.
 ```
 
 ```
-root@arcus:/opt/arcus/scripts# ./arcus.sh memcached list ruo91-cloud
+root@arcus:/opt/arcus/scripts# ./arcus.sh memcached list studio-cloud
 Server Roles
         {'zookeeper': ['172.17.0.3', '172.17.0.4', '172.17.0.5'], 'memcached': []}
 
 -----------------------------------------------------------------------------------
 serviceCode  status  total  online  offline  created                     modified
 -----------------------------------------------------------------------------------
-ruo91-cloud  OK          6       6        0  2014-05-22 07:27:21.121711  None
+studio-cloud  OK          6       6        0  2014-05-22 07:27:21.121711  None
 
 Online
         172.17.0.5:11211
