@@ -2,9 +2,18 @@
     <head>
         <title> Software Studio 2 </title>
     </head>
-
     <body>
-        <header>FUCKING ARCUS</header>
+        <div id="search_div">
+            <form method="get" action="/search">
+                <select name="select">
+                    <option value="choose">선택</option>
+                    <option value="team">팀</option>
+                    <option value="name">이름</option>
+                </select>
+                <input type="text" name="search_box">
+                <button type="submit">검색</button>
+            </form>  
+        </div>
     </body>
 
 </html>
