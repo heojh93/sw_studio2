@@ -29,7 +29,11 @@ cleanDB()
 # DB initialization
 createDB()
 initDB()
+
 getAllPeople()
+deletePerson("User5")
+getAllPeople()
+
 app = Flask(__name__)
 
 @app.route('/')

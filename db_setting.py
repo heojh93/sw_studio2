@@ -57,6 +57,7 @@ def getAllPeople():
     cur = db.cursor()
     cur.execute("USE Friend")
 
+    # For each table
     cur.execute("SELECT table_name FROM information_schema.tables where table_schema='Friend';")
     table = cur.fetchall()
     
@@ -75,7 +76,33 @@ def getAllPeople():
                     'source' : str(i[0]),
                     'target' : "User"+str(ele[0])
             }
-            print(eleDict)
+            #print(eleDict)
             ele_list.append(eleDict)
     
     return json.dumps(ele_list)
+
+def deletePerson(User):
+    db = getMysqlConnection()
+    cur = db.cursor()
+    cur.execute("USE Friend")
+
+    UserN = User[4:]
+
+    cur.execute("DROP TABLE %s;" % User)
+
+    # For each table
+    cur.execute("SELECT table_name FROM information_schema.tables where table_schema='Friend';")
+    table = cur.fetchall()
+    
+    for i in table:
+        query = ""
+        query += "DELETE IGNORE FROM "
+        query += str(i[0])
+        query += " WHERE User='"
+        query += str(UserN)
+        query += "';"
+      
+        #print(query)
+        cur.execute(query)
+     
+
