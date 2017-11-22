@@ -62,12 +62,7 @@ def getAllPeople():
     table = cur.fetchall()
     
     for i in table:
-        query = ""
-        query += "SELECT * FROM "
-        query += str(i[0])
-        query += ";"
-       
-        cur.execute(query)
+        cur.execute("SELECT * FROM %s;" % str(i[0]))
         element = cur.fetchall()
         
         ele_list = []
@@ -76,7 +71,7 @@ def getAllPeople():
                     'source' : str(i[0]),
                     'target' : "User"+str(ele[0])
             }
-            #print(eleDict)
+            print(eleDict)
             ele_list.append(eleDict)
     
     return json.dumps(ele_list)
@@ -95,14 +90,7 @@ def deletePerson(User):
     table = cur.fetchall()
     
     for i in table:
-        query = ""
-        query += "DELETE IGNORE FROM "
-        query += str(i[0])
-        query += " WHERE User='"
-        query += str(UserN)
-        query += "';"
-      
-        #print(query)
-        cur.execute(query)
-     
+        cur.execute("DELETE FROM %s WHERE User='%s';" % (str(i[0]),str(UserN)))
+
+    db.commit()
 
