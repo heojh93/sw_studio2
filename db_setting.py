@@ -1,6 +1,7 @@
 import MySQLdb
 import mysql.connector
 import random
+from flask import json
 
 def getMysqlConnection():
         return mysql.connector.connect(user='root', host='127.0.0.1', port='3306', password='password')
@@ -51,4 +52,30 @@ def cleanDB():
     db.close()
 
 
+def getAllPeople():
+    db = getMysqlConnection()
+    cur = db.cursor()
+    cur.execute("USE Friend")
 
+    cur.execute("SELECT table_name FROM information_schema.tables where table_schema='Friend';")
+    table = cur.fetchall()
+    
+    for i in table:
+        query = ""
+        query += "SELECT * FROM "
+        query += str(i[0])
+        query += ";"
+       
+        cur.execute(query)
+        element = cur.fetchall()
+        
+        ele_list = []
+        for ele in element:
+            eleDict = {
+                    'source' : str(i[0]),
+                    'target' : "User"+str(ele[0])
+            }
+            print(eleDict)
+            ele_list.append(eleDict)
+    
+    return json.dumps(ele_list)

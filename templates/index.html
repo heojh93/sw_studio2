@@ -5,14 +5,24 @@
     <body>
         <div id="search_div">
             <form method="get" action="/search">
-                <select name="select">
-                    <option value="choose">선택</option>
-                    <option value="team">팀</option>
-                    <option value="name">이름</option>
-                </select>
                 <input type="text" name="search_box">
                 <button type="submit">검색</button>
             </form>  
+        </div>
+        <div id="add_element">
+            <form method="post" action="/add">
+                <button type="submit">추가</button>
+            </form>
+        </div>
+        <div id="delete_element">
+            <form method="post" action="/delete">
+                <button type="submit">삭제</button>
+            </form>
+        </div>
+        <div id="refresh_element">
+            <form method="get" action="/search">
+                <button type="submit">새로고침</button>
+            </form>
         </div>
     </body>
 
