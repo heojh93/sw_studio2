@@ -1,27 +1,22 @@
+<!DOCTYPE html>
 <html>
     <head>
         <title> Software Studio 2 </title>
     </head>
     <body>
         <div id="search_div">
-            <form method="get" action="/search">
-                <input type="text" name="search_box">
+            <form method="post" action="{{ url_for('search_sql') }}">
+                <input type="text" name="flag_list">
                 <button type="submit">검색</button>
+                with mysql
             </form>  
         </div>
-        <div id="add_element">
-            <form method="post" action="/add">
-                <button type="submit">추가</button>
-            </form>
-        </div>
-        <div id="delete_element">
-            <form method="post" action="/delete">
-                <button type="submit">삭제</button>
-            </form>
-        </div>
-        <div id="refresh_element">
-            <form method="get" action="/search">
-                <button type="submit">새로고침</button>
+
+        <div id="search_div">
+            <form method="post" action="{{ url_for('search_arcus') }}">
+                <input type="text" name="flag_list">
+                <button type="submit">검색</button>
+                with arcus
             </form>
         </div>
 

@@ -10,6 +10,7 @@ from arcus_mc_node import EflagFilter
 # Import flask
 from flask import Flask
 from flask import render_template
+from flask import request
 
 # Import mySQL
 import MySQLdb
@@ -27,12 +28,14 @@ cur = db.cursor()
 
 def randomEleCreate(n):
     flag = random.randint(0,255)
+    
     cur.execute("INSERT INTO User VALUES ('%d', 'some contents', '%d');" % (n, flag))
     db.commit()
 
 
 app = Flask(__name__)
 
+# Init Page
 @app.route("/")
 def init():
     # close & delete DB if exist
@@ -45,16 +48,37 @@ def init():
     # ID | CONTENT | FLAG(GROUP)
     cur.execute("CREATE TABLE User (ID INT, Contents VARCHAR(100), Flag INT);")
 
-    for i in range(500):
+    for i in range(100):
         randomEleCreate(i)
 
     # get current data
     cur.execute("SELECT * FROM User;")
-    items = [dict(id=row[0], content=row[1], flag=row[2]) for row in cur.fetchall()]
+    items = [dict(id=row[0], content=row[1], flag='{0:08b}'.format(row[2])) for row in cur.fetchall()]
     
     return render_template('index.html', items = items)
-    
 
+
+# Search with flag thru mySQL
+@app.route("/search_with_sql", methods=['POST'])
+def search_sql():
+    flaglist = request.form['flag_list']
+    flags = ' '.join(flaglist.split())
+    
+    
+    # flag operation
+    flag = 0
+    for i in flags.split(' '):
+        flag = flag + (2**int(i))
+
+    # get current data
+    cur.execute("SELECT * FROM User WHERE (Flag&%d);" % flag)
+    items = [dict(id=row[0], content=row[1], flag='{0:08b}'.format(row[2])) for row in cur.fetchall()]
+
+    return render_template('search_with_sql.html', items = items)
+
+@app.route("/search_with_arcus", methods=['GET'])
+def search_arcus():
+    print 'a'
 
 if __name__ == '__main__':
-    app.run(debug=False)
+    app.run(debug=True)
