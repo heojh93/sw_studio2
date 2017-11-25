@@ -48,7 +48,7 @@ def initDB():
 def cleanDB():
     db = getMysqlConnection()
     cur = db.cursor()
-    cur.execute("DROP DATABASE Friend;")
+    cur.execute("DROP DATABASE IF EXISTS Friend;")
     db.close()
 
 
