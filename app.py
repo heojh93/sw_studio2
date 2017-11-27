@@ -17,7 +17,7 @@ import MySQLdb
 import mysql.connector
 import random
 
-ELEMENT_SIZE = 10
+ELEMENT_SIZE = 100
 
 # Connect Arcus
 client = Arcus(ArcusLocator(ArcusMCNodeAllocator(ArcusTranscoder())))
@@ -34,7 +34,7 @@ print ret.get_result()
     
 # Create Arcus Tree
 timeout = 10
-ret = client.bop_create("Timeline:btree_eflag", ArcusTranscoder.FLAG_INTEGER, timeout)
+ret = client.bop_create("Timeline:btree_eflag", ArcusTranscoder.FLAG_STRING, timeout)
 print "btree_eflag Create"
 print ret.get_result()
 
@@ -53,6 +53,9 @@ def init():
     for i in range(ELEMENT_SIZE):
         randomEleCreate(i)
 
+    ret = client.bop_get("Timeline:btree_eflag", (0, ELEMENT_SIZE))
+    print ret.get_result()
+
 # Integer to Hex
 def itoh(i):
     h = hex(i)
@@ -62,6 +65,9 @@ def itoh(i):
         h = '0x%s' % h[2:].upper()
     return h
 
+def htob(i):
+    n = i[2:]
+    return ''.join('{0:08b}'.format(int(x,16)) for x in (n[j:j+2] for j in xrange(0, len(n), 2)))
 
 # Make Random Element
 def randomEleCreate(n):
@@ -72,7 +78,7 @@ def randomEleCreate(n):
 
     # Insert into Arcus
     # key | bkey | value | eflag
-    ret = client.bop_insert("Timeline:btree_eflag", n, flag, itoh(flag))
+    ret = client.bop_insert("Timeline:btree_eflag", n, 'some contents', itoh(flag))
     print ret.get_result()
 
 
@@ -118,17 +124,23 @@ def search_arcus():
     for i in flags.split(' '):
         flag = flag + (2**int(i))
 
-    eflag = 'EFLAG & 0x00ff == ' + itoh(flag)
+    hflag = '0x00' + itoh(flag)[2:]
+    eflag = 'EFLAG & %s != 0x0000' % hflag    
     print eflag
 
-    ret = client.bop_get("Timeline:btree_eflag", (0,10), EflagFilter('EFLAG & 0x00ff == 0x0001'))
-    #ret = client.bop_get("Timeline:btree_eflag",(0,ELEMENT_SIZE), EflagFilter(eflag))
-    print ret.get_result()
+    #ret = client.bop_get("Timeline:btree_eflag", (0, 20))
+    ret = client.bop_get("Timeline:btree_eflag",(0,ELEMENT_SIZE), EflagFilter(eflag))
+    #ret = client.bop_get("Timeline:btree_eflag",(0,ELEMENT_SIZE), EflagFilter('EFLAG & 0x002A != 0x0000'))
+    result = ret.get_result()
+    
+    items = [dict(id=key, content=result[key][1], flag=htob(result[key][0])) for key in result]
+ 
+    print items
 
-    return render_template('search_with_arcus.html')
+    return render_template('search_with_arcus.html', items=items)
 
 
-client.disconnect()
+#client.disconnect()
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)

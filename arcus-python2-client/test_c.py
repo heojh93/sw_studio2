@@ -4,6 +4,8 @@ from arcus_mc_node import ArcusMCNodeAllocator
 from arcus_mc_node import EflagFilter
 import datetime, time, sys
 
+import random
+
 #enable_log()
 
 import logging
@@ -30,10 +32,13 @@ def itoh(i):
 ret = client.bop_create('test:btree_eflag', ArcusTranscoder.FLAG_INTEGER, timeout)
 print ret.get_result()
 
-for i in xrange(0, 1000):
-	ret = client.bop_insert('test:btree_eflag', i, i, itoh(i))
+for i in xrange(0, 20):
+        flag = random.randint(0,2)
+	ret = client.bop_insert('test:btree_eflag', i, flag, itoh(flag))
+        print ret.get_result()
 
-ret = client.bop_get('test:btree_eflag', (0, 1000), EflagFilter('EFLAG & 0x00ff == 0x0001'))
+#ret = client.bop_get('test:btree_eflag', (0, 20), EflagFilter('EFLAG & 0x00ff == 0x0001'))
+ret = client.bop_get('test:btree_eflag',(0,20))
 print ret.get_result()
 result = ret.get_result()
 
