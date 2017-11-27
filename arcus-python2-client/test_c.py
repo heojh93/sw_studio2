@@ -33,7 +33,7 @@ print ret.get_result()
 for i in xrange(0, 1000):
 	ret = client.bop_insert('test:btree_eflag', i, i, itoh(i))
 
-ret = client.bop_get('test:btree_eflag', (0, 1000), EflagFilter('EFLAG & 0x00ff == 0x0011'))
+ret = client.bop_get('test:btree_eflag', (0, 1000), EflagFilter('EFLAG & 0x00ff == 0x0001'))
 print ret.get_result()
 result = ret.get_result()
 
