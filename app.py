@@ -17,7 +17,7 @@ import MySQLdb
 import mysql.connector
 import random
 
-ELEMENT_SIZE = 300
+ELEMENT_SIZE = 20
 
 # Connect Arcus
 client = Arcus(ArcusLocator(ArcusMCNodeAllocator(ArcusTranscoder())))
@@ -56,11 +56,7 @@ def init():
 # Integer to Hex
 def itoh(i):
     h = hex(i)
-    if len(h) % 2 == 1:
-        h = '0x0%s' % h[2:].upper()
-    else:
-        h = '0x%s' % h[2:].upper()
-    return h
+    return '0x' + ('0'*(6-len(h))) + h[2:].upper()
 
 # Hex to Binary
 def htob(i):
@@ -122,18 +118,19 @@ def search_arcus():
     for i in flags.split(' '):
         flag = flag + (2**int(i))
 
-    hflag = '0x00' + itoh(flag)[2:]
-
-    eflag = 'EFLAG & %s == 0x0000' % hflag
+    eflag = 'EFLAG & %s != 0x0000' % itoh(flag)  
     print eflag
 
-    #ret = client.bop_get("Timeline:btree_eflag", (0, ELEMENT_SIZE))
-    #ret = client.bop_get("Timeline:btree_eflag",(0,2000), EflagFilter(eflag))
-    ret = client.bop_get("Timeline:btree_eflag",(0,ELEMENT_SIZE), EflagFilter('EFLAG & 0x002A == 0x0000'))
+    #ret = client.bop_get("Timeline:btree_eflag", (0, 20))
+    ret = client.bop_get("Timeline:btree_eflag", (0, ELEMENT_SIZE), EflagFilter(eflag))
+    #ret = client.bop_get("Timeline:btree_eflag",(0,ELEMENT_SIZE), EflagFilter('EFLAG[2:] & 0x002A != 0x0000'))
     result = ret.get_result()
-    
+    print result
     items = [dict(id=key, content=result[key][1], flag=htob(result[key][0])) for key in result]
 
+    #client.disconnect()
+ 
+    print items
     return render_template('search_with_arcus.html', items=items)
 
 
