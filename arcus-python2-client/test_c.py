@@ -28,18 +28,25 @@ def itoh(i):
 		h = '0x%s' % h[2:].upper()
 	return h
 
-
-ret = client.bop_create('test:btree_eflag', ArcusTranscoder.FLAG_INTEGER, timeout)
+n = 1000
+e = 'hi i am'
+ret = client.set('test:%d' % n, e, timeout)
 print ret.get_result()
 
-for i in xrange(0, 20):
-        flag = random.randint(0,2)
-	ret = client.bop_insert('test:btree_eflag', i, flag, itoh(flag))
-        print ret.get_result()
-
-#ret = client.bop_get('test:btree_eflag', (0, 20), EflagFilter('EFLAG & 0x00ff == 0x0001'))
-ret = client.bop_get('test:btree_eflag',(0,20))
+ret = client.get('test:%d' % n)
 print ret.get_result()
-result = ret.get_result()
+
+
+#ret = client.bop_create('test:btree_eflag', ArcusTranscoder.FLAG_INTEGER, timeout)
+#print ret.get_result()
+
+#for i in xrange(0, 300):
+#        flag = random.randint(200,300)
+#	ret = client.bop_insert('test:btree_eflag', i, i, itoh(i))
+
+#ret = client.bop_get('test:btree_eflag', (0, 300), EflagFilter('EFLAG & 0x002A == 0x0000'))
+#ret = client.bop_get('test:btree_eflag',(0,20))
+#print ret.get_result()
+#result = ret.get_result()
 
 client.disconnect()
