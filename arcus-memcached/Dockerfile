@@ -5,13 +5,11 @@
 # 기본 이미지
 FROM     ubuntu:14.04
 
-# 메인테이너
-MAINTAINER Yongbok Kim <ruo91@yongbok.net>
-
 # 기본 저장소 변경
-RUN sed -i 's/archive.ubuntu.com/ftp.jaist.ac.jp/g' /etc/apt/sources.list
+RUN sed -i 's/kr.archive.ubuntu.com/ftp.daumkakao.com/g' /etc/apt/sources.list
 
-# 최신 패키지 업데이트 및 필요 패키지 설치 
+# 최신 패키지 업데이트 및 필요 패키지 설치
+RUN apt-get clean
 RUN apt-get update && apt-get install -y curl openssh-server supervisor
 
 # 기본 소스 디렉토리 설정

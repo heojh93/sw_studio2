@@ -5,9 +5,6 @@
 # 기본 이미지
 FROM     ubuntu:14.04
 
-# 메인테이너
-MAINTAINER Yongbok Kim <ruo91@yongbok.net>
-
 # 기본 저장소 변경
 RUN sed -i 's/archive.ubuntu.com/ftp.jaist.ac.jp/g' /etc/apt/sources.list
 
